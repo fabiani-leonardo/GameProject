@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1d94e12cba7b7f247afc046a6f42a709
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - laserSound: {instanceID: 0}
+  - spriteRenderer: {instanceID: 0}
+  - boxCollider: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
