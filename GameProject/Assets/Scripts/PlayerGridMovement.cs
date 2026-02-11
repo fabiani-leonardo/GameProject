@@ -36,14 +36,35 @@ public class PlayerGridMovement : MonoBehaviour
 
     void HandleInput()
     {
-        if (Input.GetMouseButtonDown(0)) startTouchPos = Input.mousePosition;
-        else if (Input.GetMouseButtonUp(0)) { endTouchPos = Input.mousePosition; DetectSwipe(); }
-
+        // 1. PRIORITÀ AL TOUCH (Mobile)
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began) startTouchPos = touch.position;
-            else if (touch.phase == TouchPhase.Ended) { endTouchPos = touch.position; DetectSwipe(); }
+            
+            if (touch.phase == TouchPhase.Began) 
+            {
+                startTouchPos = touch.position;
+            }
+            else if (touch.phase == TouchPhase.Ended) 
+            { 
+                endTouchPos = touch.position; 
+                DetectSwipe(); 
+            }
+            
+            // IMPORTANTE: Se abbiamo rilevato un tocco, usciamo dalla funzione.
+            // In questo modo il codice sotto (Mouse) non viene eseguito.
+            return; 
+        }
+
+        // 2. FALLBACK MOUSE (Solo per test su PC / Editor)
+        if (Input.GetMouseButtonDown(0)) 
+        {
+            startTouchPos = Input.mousePosition;
+        }
+        else if (Input.GetMouseButtonUp(0)) 
+        { 
+            endTouchPos = Input.mousePosition; 
+            DetectSwipe(); 
         }
     }
 

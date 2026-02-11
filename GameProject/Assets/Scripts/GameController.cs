@@ -22,16 +22,19 @@ public class GameController : MonoBehaviour
             gameOverPanel.SetActive(false);
     }
 
-    void Update()
+   void Update()
     {
-        // Se il gioco non è finito, aumenta il punteggio
         if (!isGameOver)
         {
-            score += Time.deltaTime; // Aumenta di 1 ogni secondo
+            score += Time.deltaTime; 
             
-            // Aggiorna il testo a schermo (senza decimali)
+            // Moltiplichiamo per 10 e convertiamo in intero
+            // Esempio: 1.5 secondi diventa "Score: 15"
+            // Esempio: 10.2 secondi diventa "Score: 102"
+            int displayScore = (int)(score * 10f); 
+            
             if(scoreText != null)
-                scoreText.text = "Score: " + (int)score;
+                scoreText.text = "Score: " + displayScore;
         }
     }
 
