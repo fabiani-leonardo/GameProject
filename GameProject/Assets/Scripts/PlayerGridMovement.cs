@@ -97,17 +97,16 @@ public class PlayerGridMovement : MonoBehaviour
         }
 
         // 2. Riproduci il suono
-        // Usiamo PlayClipAtPoint perché l'oggetto Player sta per essere distrutto.
-        // Se usassimo un normale AudioSource sul player, il suono si interromperebbe subito.
         if (explosionSound != null)
         {
             AudioSource.PlayClipAtPoint(explosionSound, Camera.main.transform.position, soundVolume);
         }
 
+        // --- NUOVO: Chiama il Game Over ---
+        // Cerca il GameController nella scena e avvisa che siamo morti
+        FindAnyObjectByType<GameController>().GameOver();
+
         // 3. Distruggi il Player
         Destroy(gameObject);
-
-        Debug.Log("GAME OVER");
-        // Qui in futuro chiamerai il GameManager per mostrare il menu "Ricomincia"
     }
 }
