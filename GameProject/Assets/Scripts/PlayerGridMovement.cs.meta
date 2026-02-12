@@ -6,6 +6,7 @@ MonoImporter:
   defaultReferences:
   - explosionPrefab: {fileID: 1993449517468642654, guid: 39e2a41015eff334991754584b8e2b0e, type: 3}
   - explosionSound: {fileID: 8300000, guid: a43369cb66f11c5419eec3861f69465d, type: 3}
+  - bombPrefab: {fileID: 2292250033383255155, guid: c92f56ee305c4084693d5f55884cb260, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

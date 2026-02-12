@@ -25,7 +25,7 @@ public class GridBomb : MonoBehaviour
         // FASE 1: Caricamento (Lampeggia)
         float timer = 0f;
         bool visible = true;
-        Color warnColor = new Color(1f, 0.5f, 0f, 0.4f); // Arancione trasparente
+        Color warnColor = new Color(1f, 0f, 0f, 0.31f); // Arancione trasparente
 
         if (chargeSound) AudioSource.PlayClipAtPoint(chargeSound, Camera.main.transform.position, 0.5f);
 
