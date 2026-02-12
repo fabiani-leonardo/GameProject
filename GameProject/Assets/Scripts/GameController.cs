@@ -1,60 +1,79 @@
 using UnityEngine;
-using TMPro; // Serve per usare i testi TextMeshPro
-using UnityEngine.SceneManagement; // Serve per ricaricare la scena
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
     [Header("Interfaccia")]
-    public TextMeshProUGUI scoreText;      // Trascina qui lo ScoreText
-    public GameObject gameOverPanel;       // Trascina qui il pannello Game Over
+    public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI highScoreText; // NUOVO: Trascina qui il testo High Score
+    public GameObject gameOverPanel;
+    public TextMeshProUGUI finalScoreText; // NUOVO: Testo nel pannello Game Over
 
     private float score;
     private bool isGameOver = false;
+    private int highScore;
 
     void Start()
     {
-        // Assicuriamoci che il gioco non sia in pausa all'inizio
         Time.timeScale = 1f;
         score = 0f;
         
-        // Assicuriamoci che il pannello sia spento all'inizio
+        // Carica l'High Score salvato (se non esiste, mette 0)
+        highScore = PlayerPrefs.GetInt("HighScore", 0);
+
+        // Aggiorna la UI dell'High Score subito
+        UpdateHighScoreUI();
+
         if(gameOverPanel != null) 
             gameOverPanel.SetActive(false);
     }
 
-   void Update()
+    void Update()
     {
         if (!isGameOver)
         {
             score += Time.deltaTime; 
-            
-            // Moltiplichiamo per 10 e convertiamo in intero
-            // Esempio: 1.5 secondi diventa "Score: 15"
-            // Esempio: 10.2 secondi diventa "Score: 102"
-            int displayScore = (int)(score * 10f); 
-            
+            int displayScore = (int)(score * 10f); // Punteggio attuale
+
             if(scoreText != null)
                 scoreText.text = "Score: " + displayScore;
         }
     }
 
-    // Questa funzione viene chiamata quando il player muore
     public void GameOver()
     {
         isGameOver = true;
-
-        // Attiva il pannello Game Over
-        if(gameOverPanel != null)
-            gameOverPanel.SetActive(true);
-
-        // Ferma il tempo del gioco (tutto si blocca)
         Time.timeScale = 0f;
+
+        int finalScore = (int)(score * 10f);
+
+        // Controlla se abbiamo battuto il record
+        if (finalScore > highScore)
+        {
+            highScore = finalScore;
+            // Salva permanentemente nella memoria del telefono/PC
+            PlayerPrefs.SetInt("HighScore", highScore);
+            PlayerPrefs.Save();
+        }
+
+        if(gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+            // Mostra il punteggio finale e il record nel pannello
+            if (finalScoreText != null)
+                finalScoreText.text = "Score: " + finalScore + "\nBest: " + highScore;
+        }
     }
 
-    // Questa funzione sarà collegata al bottone
+    void UpdateHighScoreUI()
+    {
+        if (highScoreText != null)
+            highScoreText.text = "Best: " + highScore;
+    }
+
     public void RestartGame()
     {
-        // Ricarica la scena corrente
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

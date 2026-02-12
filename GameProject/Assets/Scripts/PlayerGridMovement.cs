@@ -17,6 +17,13 @@ public class PlayerGridMovement : MonoBehaviour
     public AudioClip explosionSound;   // Trascina qui il file audio
     [Range(0f, 1f)] public float soundVolume = 0.8f;
 
+    [Header("Anti-Camping")]
+    public GameObject bombPrefab; // Trascina qui il prefab GridBomb
+    public float maxIdleTime = 2.5f; // Tempo limite fermo
+    
+    private float idleTimer = 0f;
+    private Vector2 lastRecordedPos;
+
     private Vector2 startTouchPos;
     private Vector2 currentGridPos;
     private Vector2 endTouchPos;
@@ -24,11 +31,13 @@ public class PlayerGridMovement : MonoBehaviour
     void Start()
     {
         currentGridPos = Vector2.zero;
+        lastRecordedPos = transform.position; // <--- AGGIUNGI QUESTA
     }
 
     void Update()
     {
         HandleInput();
+        CheckCamping(); // Nuova funzione
     }
 
     // ... (Tutta la parte HandleInput, DetectSwipe, Move, UpdateRealPosition resta uguale) ...
@@ -129,5 +138,36 @@ public class PlayerGridMovement : MonoBehaviour
 
         // 3. Distruggi il Player
         Destroy(gameObject);
+    }
+
+    void CheckCamping()
+    {
+        // Se la posizione attuale è uguale all'ultima registrata
+        if ((Vector2)transform.position == lastRecordedPos)
+        {
+            idleTimer += Time.deltaTime;
+
+            // Se supera il tempo limite...
+            if (idleTimer >= maxIdleTime)
+            {
+                SpawnBombOnMe();
+                idleTimer = 0f; // Resetta per non spawnarne 100 insieme
+            }
+        }
+        else
+        {
+            // Se ci siamo mossi, resetta il timer e aggiorna la posizione
+            idleTimer = 0f;
+            lastRecordedPos = transform.position;
+        }
+    }
+
+    void SpawnBombOnMe()
+    {
+        if (bombPrefab != null)
+        {
+            // Spawna la bomba esattamente dove si trova il player
+            Instantiate(bombPrefab, transform.position, Quaternion.identity);
+        }
     }
 }
