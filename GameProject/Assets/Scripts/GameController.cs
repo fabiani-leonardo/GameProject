@@ -6,9 +6,12 @@ public class GameController : MonoBehaviour
 {
     [Header("Interfaccia")]
     public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI highScoreText; // NUOVO: Trascina qui il testo High Score
+    public TextMeshProUGUI highScoreText;
+    public TextMeshProUGUI finalScoreText;
     public GameObject gameOverPanel;
-    public TextMeshProUGUI finalScoreText; // NUOVO: Testo nel pannello Game Over
+
+    [Header("Impostazioni Grafiche")]
+    public GameObject gridContainer; // NUOVO: Trascina qui l'oggetto "Division"
 
     private float score;
     private bool isGameOver = false;
@@ -19,22 +22,37 @@ public class GameController : MonoBehaviour
         Time.timeScale = 1f;
         score = 0f;
         
-        // Carica l'High Score salvato (se non esiste, mette 0)
+        // Carica High Score
         highScore = PlayerPrefs.GetInt("HighScore", 0);
+        
+        // --- NUOVO: CONTROLLO IMPOSTAZIONI ---
+        
+        // 1. Controlla se mostrare il Best Score in gioco
+        bool showBest = PlayerPrefs.GetInt("ShowBestScore", 1) == 1;
+        if (highScoreText != null)
+            highScoreText.gameObject.SetActive(showBest);
 
-        // Aggiorna la UI dell'High Score subito
+        // 2. Controlla se mostrare la Griglia
+        bool showGrid = PlayerPrefs.GetInt("ShowGrid", 1) == 1;
+        if (gridContainer != null)
+            gridContainer.SetActive(showGrid);
+            
+        // -------------------------------------
+
         UpdateHighScoreUI();
 
         if(gameOverPanel != null) 
             gameOverPanel.SetActive(false);
     }
 
+    // ... (TUTTO IL RESTO DELLO SCRIPT RIMANE UGUALE: Update, GameOver, RestartGame) ...
+    
     void Update()
     {
         if (!isGameOver)
         {
             score += Time.deltaTime; 
-            int displayScore = (int)(score * 10f); // Punteggio attuale
+            int displayScore = (int)(score * 10f); 
 
             if(scoreText != null)
                 scoreText.text = "Score: " + displayScore;
@@ -48,11 +66,9 @@ public class GameController : MonoBehaviour
 
         int finalScore = (int)(score * 10f);
 
-        // Controlla se abbiamo battuto il record
         if (finalScore > highScore)
         {
             highScore = finalScore;
-            // Salva permanentemente nella memoria del telefono/PC
             PlayerPrefs.SetInt("HighScore", highScore);
             PlayerPrefs.Save();
         }
@@ -60,7 +76,6 @@ public class GameController : MonoBehaviour
         if(gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
-            // Mostra il punteggio finale e il record nel pannello
             if (finalScoreText != null)
                 finalScoreText.text = "Score: " + finalScore + "\nBest: " + highScore;
         }
