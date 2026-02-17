@@ -21,8 +21,8 @@ public class PlayerGridMovement : MonoBehaviour
     public GameObject bombPrefab; // Trascina qui il prefab GridBomb
     public float maxIdleTime = 2.5f; // Tempo limite fermo
 
-    [Header("Effetti")]
-    public ParticleSystem moveParticlesPrefab; // Trascina qui il prefab del sistema di particelle per il movimento
+    //[Header("Effetti")]
+    //public ParticleSystem moveParticlesPrefab; // Trascina qui il prefab del sistema di particelle per il movimento
     
     private float idleTimer = 0f;
     private Vector2 lastRecordedPos;
@@ -135,7 +135,7 @@ public class PlayerGridMovement : MonoBehaviour
 
         if (newX > maxRight || newX < maxLeft || newY > maxUp || newY < maxDown) return;
 
-        // 1. Istanzia le particelle nella vecchia posizione (dove eravamo prima di muoverci)
+        /*// 1. Istanzia le particelle nella vecchia posizione (dove eravamo prima di muoverci)
         if (moveParticlesPrefab != null)
         {
             // Creiamo l'effetto
@@ -143,7 +143,7 @@ public class PlayerGridMovement : MonoBehaviour
             
             // Distruggiamo l'oggetto particellare dopo 1 secondo per non intasare la memoria
             Destroy(p.gameObject, 1f); 
-        }
+        }*/
 
         // 2. Aggiorna la posizione (come prima)
         currentGridPos.x = newX;
