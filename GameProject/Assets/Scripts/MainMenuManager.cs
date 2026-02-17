@@ -10,7 +10,9 @@ public class MainMenuManager : MonoBehaviour
     public GameObject settingsPanel;
     public GameObject customizePanel; // NUOVO
 
-    
+    [Header("Riferimenti Sfondo")] // --- NUOVO ---
+    public SpriteRenderer backgroundSquare; // Trascina qui il tuo oggetto "Square"
+    public Color[] skinColors; // Definiremo i 5 colori qui nell'Inspector
 
     [Header("Impostazioni Settings")]
     public Toggle gridToggle;
@@ -72,39 +74,43 @@ public class MainMenuManager : MonoBehaviour
     void UpdateSkinsUI()
     {
         int highScore = PlayerPrefs.GetInt("HighScore", 0);
-        int selectedSkin = PlayerPrefs.GetInt("SelectedSkin", 0); // 0 = Bianco
+        int selectedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
 
-        // Ciclo per gestire i 5 bottoni (0 a 4)
         for (int i = 0; i < skinButtons.Length; i++)
         {
             // 1. Controllo Sblocco
             bool isUnlocked = highScore >= scoreThresholds[i];
-            
-            // Il bottone è cliccabile solo se sbloccato
             skinButtons[i].interactable = isUnlocked;
 
-            // Gestione Lucchetti (i lucchetti sono 4, partono dall'indice 1 del colore)
-            if (i > 0) // Il bianco non ha lucchetto
+            // Gestione Lucchetti
+            if (i > 0 && lockIcons.Length > i - 1 && lockIcons[i - 1] != null)
             {
-                if (lockIcons.Length > i - 1 && lockIcons[i - 1] != null)
-                {
-                    // Se sbloccato, nascondi il lucchetto. Se bloccato, mostralo.
-                    lockIcons[i - 1].SetActive(!isUnlocked);
-                }
+                lockIcons[i - 1].SetActive(!isUnlocked);
             }
 
-            // 2. Controllo Selezione (Opzionale: cambia colore o mostra bordo)
-            // Qui usiamo un semplice sistema: se è selezionato, il bottone è un po' più scuro o chiaro
+            // 2. Controllo Colori (FIX COMPLETO)
             ColorBlock cb = skinButtons[i].colors;
+            
             if (i == selectedSkin)
             {
-                cb.normalColor = Color.white; // Selezionato: Pieno colore
+                // Se è selezionato, forziamo TUTTI gli stati a essere bianchi/accesi
+                cb.normalColor = Color.white;
+                cb.highlightedColor = Color.white;
                 cb.selectedColor = Color.white;
+                cb.pressedColor = Color.white;
             }
             else
             {
-                cb.normalColor = new Color(0.5f, 0.5f, 0.5f, 1f); // Non selezionato: Più scuro
+                // Se NON è selezionato, forziamo TUTTI gli stati a essere grigi/spenti
+                Color dimColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+                cb.normalColor = dimColor;
+                cb.highlightedColor = dimColor;
+                cb.selectedColor = dimColor;
+                // Lasciamo pressedColor un po' più chiaro per dare feedback al click se vuoi, 
+                // oppure mettilo uguale a dimColor
+                cb.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f); 
             }
+            
             skinButtons[i].colors = cb;
         }
     }
@@ -116,6 +122,16 @@ public class MainMenuManager : MonoBehaviour
         PlayerPrefs.SetInt("SelectedSkin", skinIndex);
         PlayerPrefs.Save();
         UpdateSkinsUI(); // Aggiorna la grafica per mostrare la nuova selezione
+        UpdateBackgroundColor(skinIndex);
+    }
+
+    void UpdateBackgroundColor(int index)
+    {
+        // Controlla se abbiamo assegnato il quadrato e se l'indice è valido
+        if (backgroundSquare != null && skinColors.Length > index)
+        {
+            backgroundSquare.color = skinColors[index];
+        }
     }
     
     // Toggle Helpers (opzionali)
