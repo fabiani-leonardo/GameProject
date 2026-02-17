@@ -1,65 +1,124 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI; // Serve per i Toggle
+using UnityEngine.UI;
 using TMPro;
 
 public class MainMenuManager : MonoBehaviour
 {
-    [Header("UI Riferimenti")]
+    [Header("UI Generala")]
     public TextMeshProUGUI highScoreText;
     public GameObject settingsPanel;
+    public GameObject customizePanel; // NUOVO
+
+    
+
+    [Header("Impostazioni Settings")]
     public Toggle gridToggle;
     public Toggle bestScoreToggle;
 
+    [Header("Sistema Customize")]
+    public Button[] skinButtons;      // Trascina qui i 5 bottoni
+    public GameObject[] lockIcons;    // Trascina qui i 4 lucchetti (indice 0 = verde, ecc.)
+    public GameObject[] selectOutlines; // Opzionale: cornici per evidenziare la scelta
+
+    // Soglie di punteggio per sbloccare (Bianco è 0)
+    private int[] scoreThresholds = { 0, 300, 600, 900, 1200 }; 
+
     void Start()
     {
-        // 1. Mostra l'High Score nel menu
+        // Setup base (come prima)
         int best = PlayerPrefs.GetInt("HighScore", 0);
-        highScoreText.text = "Best: " + best;
+        highScoreText.text = "Best:" + best;
 
-        // 2. Imposta i Toggle come li avevamo lasciati (Default: Accesi = 1)
-        bool gridStatus = PlayerPrefs.GetInt("ShowGrid", 1) == 1;
-        bool scoreStatus = PlayerPrefs.GetInt("ShowBestScore", 1) == 1;
+        gridToggle.isOn = PlayerPrefs.GetInt("ShowGrid", 1) == 1;
+        bestScoreToggle.isOn = PlayerPrefs.GetInt("ShowBestScore", 1) == 1;
 
-        gridToggle.isOn = gridStatus;
-        bestScoreToggle.isOn = scoreStatus;
-
-        // Assicuriamoci che il pannello opzioni sia chiuso
         settingsPanel.SetActive(false);
+        customizePanel.SetActive(false);
     }
 
-    // Collegare al tasto GIOCA
     public void PlayGame()
     {
-        SceneManager.LoadScene("SampleScene"); // Assicurati che la scena di gioco si chiami così
+        SceneManager.LoadScene("SampleScene");
     }
 
-    // Collegare al tasto OPZIONI
     public void OpenSettings()
     {
         settingsPanel.SetActive(true);
     }
-
-    // Collegare al tasto CHIUDI nel pannello
+    
     public void CloseSettings()
     {
-        // Salviamo le preferenze quando chiudiamo
+        // Salva opzioni
         PlayerPrefs.SetInt("ShowGrid", gridToggle.isOn ? 1 : 0);
         PlayerPrefs.SetInt("ShowBestScore", bestScoreToggle.isOn ? 1 : 0);
         PlayerPrefs.Save();
-
         settingsPanel.SetActive(false);
     }
 
-    // Collegare al Toggle GRIGLIA (On Value Changed) - Opzionale, per salvare subito
-    public void SetGridPref(bool value)
+    // --- NUOVA LOGICA CUSTOMIZE ---
+
+    public void OpenCustomize()
     {
-        PlayerPrefs.SetInt("ShowGrid", value ? 1 : 0);
+        customizePanel.SetActive(true);
+        UpdateSkinsUI();
     }
 
-    // Collegare al Toggle SCORE (On Value Changed) - Opzionale
-    public void SetScorePref(bool value)
+    public void CloseCustomize()
     {
-        PlayerPrefs.SetInt("ShowBestScore", value ? 1 : 0);
+        customizePanel.SetActive(false);
     }
+
+    void UpdateSkinsUI()
+    {
+        int highScore = PlayerPrefs.GetInt("HighScore", 0);
+        int selectedSkin = PlayerPrefs.GetInt("SelectedSkin", 0); // 0 = Bianco
+
+        // Ciclo per gestire i 5 bottoni (0 a 4)
+        for (int i = 0; i < skinButtons.Length; i++)
+        {
+            // 1. Controllo Sblocco
+            bool isUnlocked = highScore >= scoreThresholds[i];
+            
+            // Il bottone è cliccabile solo se sbloccato
+            skinButtons[i].interactable = isUnlocked;
+
+            // Gestione Lucchetti (i lucchetti sono 4, partono dall'indice 1 del colore)
+            if (i > 0) // Il bianco non ha lucchetto
+            {
+                if (lockIcons.Length > i - 1 && lockIcons[i - 1] != null)
+                {
+                    // Se sbloccato, nascondi il lucchetto. Se bloccato, mostralo.
+                    lockIcons[i - 1].SetActive(!isUnlocked);
+                }
+            }
+
+            // 2. Controllo Selezione (Opzionale: cambia colore o mostra bordo)
+            // Qui usiamo un semplice sistema: se è selezionato, il bottone è un po' più scuro o chiaro
+            ColorBlock cb = skinButtons[i].colors;
+            if (i == selectedSkin)
+            {
+                cb.normalColor = Color.white; // Selezionato: Pieno colore
+                cb.selectedColor = Color.white;
+            }
+            else
+            {
+                cb.normalColor = new Color(0.5f, 0.5f, 0.5f, 1f); // Non selezionato: Più scuro
+            }
+            skinButtons[i].colors = cb;
+        }
+    }
+
+    // Questa funzione va collegata ai bottoni delle skin: 
+    // Al bottone bianco passa 0, verde 1, ciano 2, ecc.
+    public void SelectSkin(int skinIndex)
+    {
+        PlayerPrefs.SetInt("SelectedSkin", skinIndex);
+        PlayerPrefs.Save();
+        UpdateSkinsUI(); // Aggiorna la grafica per mostrare la nuova selezione
+    }
+    
+    // Toggle Helpers (opzionali)
+    public void SetGridPref(bool value) => PlayerPrefs.SetInt("ShowGrid", value ? 1 : 0);
+    public void SetScorePref(bool value) => PlayerPrefs.SetInt("ShowBestScore", value ? 1 : 0);
 }

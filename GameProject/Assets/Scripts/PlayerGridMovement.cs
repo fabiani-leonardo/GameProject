@@ -31,7 +31,40 @@ public class PlayerGridMovement : MonoBehaviour
     void Start()
     {
         currentGridPos = Vector2.zero;
-        lastRecordedPos = transform.position; // <--- AGGIUNGI QUESTA
+        lastRecordedPos = transform.position;
+
+        ApplySelectedSkin();
+    }
+
+    void ApplySelectedSkin()
+    {
+        // Leggi quale skin ha scelto il giocatore (Default 0 = Bianco)
+        int selectedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
+        
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr == null) return;
+
+        switch (selectedSkin)
+        {
+            case 0: // Bianco
+                sr.color = Color.white;
+                break;
+            case 1:
+                sr.color = new Color(0.0f, 0.64f, 1f, 1f); 
+                break;
+            case 2:
+                sr.color = new Color(0.21f, 0.21f, 1f, 1f); 
+                break;
+            case 3:
+                sr.color = new Color(0.64f, 0.18f, 1f, 1f); 
+                break;
+            case 4:
+                sr.color = new Color(1f, 0.18f, 0.65f, 1f); 
+                break;
+            default:
+                sr.color = Color.white;
+                break;
+        }
     }
 
     void Update()

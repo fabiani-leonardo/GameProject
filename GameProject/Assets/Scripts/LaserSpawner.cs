@@ -6,47 +6,57 @@ public class LaserSpawner : MonoBehaviour
     public GameObject laserPrefab;
     public PlayerGridMovement playerRef; 
 
-    [Header("Difficoltà Crescente")]
+    [Header("Difficoltà Bilanciata")]
     public float initialSpawnRate = 2.0f; 
-    public float minSpawnRate = 0.5f;     
-    public float difficultyFactor = 0.05f;
+    public float minSpawnRate = 0.7f;     // Un po' più lento del vecchio 0.5
+    public float difficultyFactor = 0.02f; // Molto più basso (era 0.05)
 
-    [Header("Caos")]
-    [Range(0f, 1f)] public float doubleLaserChance = 0f; // Probabilità iniziale di doppio laser
-    public float maxDoubleLaserChance = 0.4f; // Al massimo il 40% delle volte ne escono due
-    public float currentWarningTime = 1.0f; // Tempo di avviso iniziale
-    public float minWarningTime = 0.4f; // Tempo minimo di avviso (velocissimo!)
-
+    [Header("Caos Controllato")]
+    public float maxDoubleLaserChance = 0.3f; // Max 30%
+    public float timeBeforeChaos = 30f; // I doppi laser iniziano solo dopo 30 secondi
+    
+    // Variabili private per gestire lo stato
     private float currentSpawnRate;
     private float nextSpawnTime;
+    private float doubleLaserChance = 0f; 
+    private float currentWarningTime = 1.0f;
+    private float minWarningTime = 0.5f;
 
     void Start()
     {
         currentSpawnRate = initialSpawnRate;
         nextSpawnTime = Time.time + 1.0f;
+        doubleLaserChance = 0f; // Si inizia sempre da zero
     }
 
     void Update()
     {
         if (Time.time >= nextSpawnTime)
         {
-            SpawnLaserLogic(); // Chiama la logica di spawn
+            SpawnLaserLogic();
             IncreaseDifficulty();
         }
     }
 
     void IncreaseDifficulty()
     {
-        // 1. Spawna più spesso
+        // 1. AUMENTO VELOCITÀ (Lineare e lento)
+        // Riduciamo il tempo di attesa molto lentamente
         currentSpawnRate -= difficultyFactor;
         if (currentSpawnRate < minSpawnRate) currentSpawnRate = minSpawnRate;
 
-        // 2. Aumenta probabilità di doppi laser (Caos)
-        doubleLaserChance += 0.01f; // Sale dell'1% ogni spawn
-        if (doubleLaserChance > maxDoubleLaserChance) doubleLaserChance = maxDoubleLaserChance;
+        // 2. AUMENTO CAOS (Basato sul tempo di gioco)
+        // Solo se il giocatore sopravvive più di "timeBeforeChaos" (es. 30 secondi)
+        // iniziamo ad introdurre la possibilità di doppi laser.
+        if (Time.timeSinceLevelLoad > timeBeforeChaos)
+        {
+            doubleLaserChance += 0.005f; // Sale dello 0.5% alla volta (molto piano)
+            if (doubleLaserChance > maxDoubleLaserChance) doubleLaserChance = maxDoubleLaserChance;
+        }
 
-        // 3. Riduci il tempo di avviso (Riflessi)
-        currentWarningTime -= 0.01f;
+        // 3. RIFLESSI (Warning time)
+        // Anche questo scende piano piano
+        currentWarningTime -= 0.005f;
         if (currentWarningTime < minWarningTime) currentWarningTime = minWarningTime;
 
         nextSpawnTime = Time.time + currentSpawnRate;
@@ -56,7 +66,7 @@ public class LaserSpawner : MonoBehaviour
     {
         SpawnSingleLaser();
 
-        // Controllo Caos: Tiriamo un dado per vedere se spawnarne un secondo
+        // Ora il dado viene tirato solo se siamo nella fase avanzata della partita
         if (Random.value < doubleLaserChance)
         {
             SpawnSingleLaser();
@@ -65,7 +75,7 @@ public class LaserSpawner : MonoBehaviour
 
     void SpawnSingleLaser()
     {
-        // --- (Tutta la tua vecchia logica di calcolo posizione rimane qui) ---
+        // --- LOGICA DI POSIZIONAMENTO (Invariata) ---
         int type = Random.Range(0, 4);
         float gridWidth = (playerRef.maxRight - playerRef.maxLeft + 1) * playerRef.cellSize;
         float gridHeight = (playerRef.maxUp - playerRef.maxDown + 1) * playerRef.cellSize;
@@ -106,7 +116,6 @@ public class LaserSpawner : MonoBehaviour
         GameObject newLaser = Instantiate(laserPrefab, spawnPos, spawnRot);
         newLaser.transform.localScale = spawnScale;
 
-        // --- NUOVO: Applichiamo il tempo di avviso dinamico al laser ---
         LaserBehavior behavior = newLaser.GetComponent<LaserBehavior>();
         if (behavior != null)
         {
