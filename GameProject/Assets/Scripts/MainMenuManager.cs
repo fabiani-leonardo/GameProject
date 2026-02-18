@@ -18,6 +18,9 @@ public class MainMenuManager : MonoBehaviour
     public Toggle gridToggle;
     public Toggle bestScoreToggle;
 
+    [Header("Pannelli")]
+    public GameObject creditsPanel;
+
     [Header("Sistema Customize")]
     public Button[] skinButtons;      // Trascina qui i 5 bottoni
     public GameObject[] lockIcons;    // Trascina qui i 4 lucchetti (indice 0 = verde, ecc.)
@@ -69,6 +72,16 @@ public class MainMenuManager : MonoBehaviour
     public void CloseCustomize()
     {
         customizePanel.SetActive(false);
+    }
+
+    public void OpenCredits()
+    {
+        creditsPanel.SetActive(true);
+    }
+
+    public void CloseCredits()
+    {
+        creditsPanel.SetActive(false);
     }
 
     void UpdateSkinsUI()
