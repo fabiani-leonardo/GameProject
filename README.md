@@ -1,2 +1,21 @@
 # GameProject
-un repository per un progetto in unity per Mobile Programming
+un repository per un progetto in unity per Mobile Computing
+Developers: 	Leonardo Fabiani
+			        Chiara Brancaleoni
+Music: 		Freesound.org/FoolBoyMedia
+				    Home: Peaceful Break
+				    Game: Don't give up now
+Sound Effects:	opengameart.org
+				          Laser: Laser8-dklon
+				          Anti-Camp Laser: laser-shaun105
+				          Square-Explosion: sharp explosion 1 of 5-rudmer rotteveel
+Beta Testers:	   Marco Marani
+			          Fulvio Fabiani
+			          Andrea Brancaleoni
+Special Thanks:	Google CEO-Sundar Pichai
+			and Google DeepMind CEO Demis Hassabis
+			"thanks for making Gemini Pro, without you
+			all of this would have been much harder"
+
+			
+	
