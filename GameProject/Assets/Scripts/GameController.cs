@@ -123,9 +123,7 @@ public class GameController : MonoBehaviour
 
     public void GoToMainMenu()
     {
-        // IMPORTANTE: Resetta il tempo prima di cambiare scena, 
-        // altrimenti il menu principale sarà bloccato!
-        Time.timeScale = 1f; 
+        Time.timeScale = 1f; // Fai ripartire il tempo!
         SceneManager.LoadScene("MainMenu");
     }
 }

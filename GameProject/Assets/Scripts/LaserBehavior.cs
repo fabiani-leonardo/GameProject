@@ -23,34 +23,46 @@ public class LaserBehavior : MonoBehaviour
 
     IEnumerator LaserRoutine()
     {
-        // --- FASE 1: AVVISO (Lampeggio) ---
+        // --- FASE 1: AVVISO (Lampeggio Accelerato + Cambio Colore) ---
         float timer = 0f;
         bool isVisible = true;
         
-        // Colore di avviso (Giallo o Rosso trasparente)
-        Color warningColor = new Color(1f, 0f, 0f, 0.3f); 
-        Color activeColor = new Color(1f, 0f, 0f, 1f); // Rosso pieno
+        // Definiamo i colori di transizione
+        Color startWarningColor = new Color(1f, 0f, 0f, 0.5f); // Giallo/Arancio trasparente
+        Color endWarningColor = new Color(1f, 0f, 0f, 0.5f);     // Rosso trasparente
+        Color activeColor = new Color(1f, 0f, 0f, 1f);           // Rosso solido (Letale)
 
         while (timer < warningDuration)
         {
-            // Effetto lampeggio veloce
-            spriteRenderer.color = isVisible ? warningColor : Color.clear;
+            // Calcoliamo a che punto siamo dell'avvertimento (valore da 0.0 a 1.0)
+            float progress = timer / warningDuration;
+
+            // 1. CAMBIO COLORE: Sfuma dolcemente dal giallo al rosso in base al progresso
+            Color currentWarningColor = Color.Lerp(startWarningColor, endWarningColor, progress);
+
+            // 2. ACCELERAZIONE: La velocità passa da 0.15s (lento) a 0.03s (velocissimo, quasi un tremolio)
+            float currentBlinkSpeed = Mathf.Lerp(0.15f, 0.03f, progress);
+
+            // Applica l'effetto visivo
+            spriteRenderer.color = isVisible ? currentWarningColor : Color.clear;
             isVisible = !isVisible;
             
-            float blinkSpeed = 0.1f; // Ogni quanto lampeggia
-            yield return new WaitForSeconds(blinkSpeed);
-            timer += blinkSpeed;
+            // Aspetta il tempo calcolato e aggiorna il timer
+            yield return new WaitForSeconds(currentBlinkSpeed);
+            timer += currentBlinkSpeed;
         }
 
         // --- FASE 2: ATTIVO (Letale) ---
         spriteRenderer.color = activeColor; // Diventa rosso solido
         boxCollider.enabled = true;         // Ora può uccidere il player
         
+        
+        // Fai partire il suono
         if (laserSound != null)
         {
-            // Il terzo parametro (0.5f) è il volume (0.0 = muto, 1.0 = massimo)
-            // Prova con 0.3f o 0.5f per abbassarlo
-            AudioSource.PlayClipAtPoint(laserSound, Camera.main.transform.position, 0.1f); 
+            float sfxVol = PlayerPrefs.GetFloat("SFXVolume", 1f);
+            // Ho aggiunto "* sfxVol" al parametro del volume
+            AudioSource.PlayClipAtPoint(laserSound, Camera.main.transform.position, 0.4f * sfxVol); 
         }
 
         yield return new WaitForSeconds(activeDuration);
