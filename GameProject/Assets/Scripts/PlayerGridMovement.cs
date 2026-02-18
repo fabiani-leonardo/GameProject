@@ -173,17 +173,20 @@ public class PlayerGridMovement : MonoBehaviour
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         }
 
-        // 2. Riproduci il suono
+        // 2. Riproduci il suono (CON CONTROLLO VOLUME)
         if (explosionSound != null)
         {
-            AudioSource.PlayClipAtPoint(explosionSound, Camera.main.transform.position, soundVolume);
+            // --- FIX: Leggiamo il volume globale degli SFX ---
+            float sfxVol = PlayerPrefs.GetFloat("SFXVolume", 1f);
+            
+            // Moltiplichiamo il volume base per quello dello slider
+            AudioSource.PlayClipAtPoint(explosionSound, Camera.main.transform.position, soundVolume * sfxVol);
         }
 
-        // --- NUOVO: Chiama il Game Over ---
-        // Cerca il GameController nella scena e avvisa che siamo morti
+        // 3. Chiama il Game Over
         FindAnyObjectByType<GameController>().GameOver();
 
-        // 3. Distruggi il Player
+        // 4. Distruggi il Player
         Destroy(gameObject);
     }
 

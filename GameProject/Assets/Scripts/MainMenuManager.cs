@@ -10,33 +10,46 @@ public class MainMenuManager : MonoBehaviour
     public GameObject settingsPanel;
     public GameObject customizePanel; // NUOVO
 
-    [Header("Riferimenti Sfondo")] // --- NUOVO ---
-    public SpriteRenderer backgroundSquare; // Trascina qui il tuo oggetto "Square"
-    public Color[] skinColors; // Definiremo i 5 colori qui nell'Inspector
+    [Header("Riferimenti Sfondo")]
+    public Image backgroundSquare;          // <-- NUOVO! (Image al posto di SpriteRenderer)
+    public Color[] skinColors;
 
     [Header("Impostazioni Settings")]
     public Toggle gridToggle;
     public Toggle bestScoreToggle;
+
+    [Header("Pannelli")]
+    public GameObject creditsPanel;
 
     [Header("Sistema Customize")]
     public Button[] skinButtons;      // Trascina qui i 5 bottoni
     public GameObject[] lockIcons;    // Trascina qui i 4 lucchetti (indice 0 = verde, ecc.)
     public GameObject[] selectOutlines; // Opzionale: cornici per evidenziare la scelta
 
+    [Header("Impostazioni Audio")] // --- NUOVO ---
+    public Slider musicSlider;
+    public Slider sfxSlider;
+
     // Soglie di punteggio per sbloccare (Bianco è 0)
     private int[] scoreThresholds = { 0, 300, 600, 900, 1200 }; 
 
     void Start()
     {
+        // --- FIX: Assicuriamoci che il tempo scorra normalmente! ---
+        Time.timeScale = 1f; 
+
         // Setup base (come prima)
         int best = PlayerPrefs.GetInt("HighScore", 0);
-        highScoreText.text = "Best:" + best;
+        highScoreText.text = "Best: " + best;
 
         gridToggle.isOn = PlayerPrefs.GetInt("ShowGrid", 1) == 1;
-        bestScoreToggle.isOn = PlayerPrefs.GetInt("ShowBestScore", 1) == 1;
+        // ... (tutto il resto del tuo codice rimane identico)
 
-        settingsPanel.SetActive(false);
-        customizePanel.SetActive(false);
+        // --- NUOVO: IMPOSTAZIONI AUDIO ---
+        if (musicSlider != null) 
+            musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 1f);
+        if (sfxSlider != null) 
+            sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume", 1f);
     }
 
     public void PlayGame()
@@ -69,6 +82,16 @@ public class MainMenuManager : MonoBehaviour
     public void CloseCustomize()
     {
         customizePanel.SetActive(false);
+    }
+
+    public void OpenCredits()
+    {
+        creditsPanel.SetActive(true);
+    }
+
+    public void CloseCredits()
+    {
+        creditsPanel.SetActive(false);
     }
 
     void UpdateSkinsUI()
@@ -137,4 +160,15 @@ public class MainMenuManager : MonoBehaviour
     // Toggle Helpers (opzionali)
     public void SetGridPref(bool value) => PlayerPrefs.SetInt("ShowGrid", value ? 1 : 0);
     public void SetScorePref(bool value) => PlayerPrefs.SetInt("ShowBestScore", value ? 1 : 0);
+
+    // --- NUOVE FUNZIONI PER L'AUDIO ---
+    public void SetMusicVolume(float value)
+    {
+        PlayerPrefs.SetFloat("MusicVolume", value);
+    }
+
+    public void SetSFXVolume(float value)
+    {
+        PlayerPrefs.SetFloat("SFXVolume", value);
+    }
 }

@@ -10,6 +10,10 @@ public class GameController : MonoBehaviour
     public TextMeshProUGUI finalScoreText;
     public GameObject gameOverPanel;
 
+    [Header("Pausa")]
+    public GameObject pausePanel;
+    private bool isPaused = false;
+
     [Header("Impostazioni Grafiche")]
     public GameObject gridContainer; // NUOVO: Trascina qui l'oggetto "Division"
 
@@ -94,6 +98,32 @@ public class GameController : MonoBehaviour
 
     public void MainMenu()
     {
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void TogglePause()
+    {
+        // Se siamo in Game Over, non possiamo mettere in pausa
+        if (isGameOver) return; 
+
+        isPaused = !isPaused; // Inverte lo stato
+        
+        if (pausePanel != null)
+            pausePanel.SetActive(isPaused);
+
+        // Se è in pausa ferma il tempo, altrimenti lo fa scorrere normale
+        Time.timeScale = isPaused ? 0f : 1f; 
+    }
+
+    public void ResumeGame()
+    {
+        // Chiama semplicemente il Toggle per togliere la pausa
+        TogglePause();
+    }
+
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f; // Fai ripartire il tempo!
         SceneManager.LoadScene("MainMenu");
     }
 }
