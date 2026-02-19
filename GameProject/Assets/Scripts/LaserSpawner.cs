@@ -7,9 +7,7 @@ public class LaserSpawner : MonoBehaviour
     public PlayerGridMovement playerRef; 
 
     [Header("Aspetto")]
-    public float laserWidth = 0.3f; // <--- NUOVO: Modifica questo valore nell'Inspector!
-                                     // 0.5f era il vecchio valore (grosso)
-                                     // 0.2f o 0.15f saranno molto più sottili
+    public float laserWidth = 0.3f;
 
     [Header("Difficoltà Bilanciata")]
     public float initialSpawnRate = 2.0f; 
@@ -83,28 +81,28 @@ public class LaserSpawner : MonoBehaviour
         Quaternion spawnRot = Quaternion.identity;
         Vector3 spawnScale = Vector3.one;
 
-        // NOTA: Qui sotto usiamo "laserWidth" invece di 0.5f
+        
         switch (type)
         {
             case 0: // Orizzontale
                 spawnPos = new Vector3(0, targetPos.y, 0);
                 spawnRot = Quaternion.identity; 
-                spawnScale = new Vector3(maxLength, laserWidth, 1); // <--- USA VARIABILE
+                spawnScale = new Vector3(maxLength, laserWidth, 1); 
                 break;
             case 1: // Verticale
                 spawnPos = new Vector3(targetPos.x, 0, 0);
                 spawnRot = Quaternion.Euler(0, 0, 90);
-                spawnScale = new Vector3(maxLength, laserWidth, 1); // <--- USA VARIABILE
+                spawnScale = new Vector3(maxLength, laserWidth, 1); 
                 break;
             case 2: // Diagonale /
                 spawnPos = targetPos;
                 spawnRot = Quaternion.Euler(0, 0, 45);
-                spawnScale = new Vector3(maxLength, laserWidth, 1); // <--- USA VARIABILE
+                spawnScale = new Vector3(maxLength, laserWidth, 1); 
                 break;
             case 3: // Diagonale \
                 spawnPos = targetPos;
                 spawnRot = Quaternion.Euler(0, 0, -45);
-                spawnScale = new Vector3(maxLength, laserWidth, 1); // <--- USA VARIABILE
+                spawnScale = new Vector3(maxLength, laserWidth, 1); 
                 break;
         }
 

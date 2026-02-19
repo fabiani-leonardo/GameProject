@@ -15,7 +15,7 @@ public class GameController : MonoBehaviour
     private bool isPaused = false;
 
     [Header("Impostazioni Grafiche")]
-    public GameObject gridContainer; // NUOVO: Trascina qui l'oggetto "Division"
+    public GameObject gridContainer; 
 
     private float score;
     private bool isGameOver = false;
@@ -26,22 +26,22 @@ public class GameController : MonoBehaviour
         Time.timeScale = 1f;
         score = 0f;
         
-        // Carica High Score
+        
         highScore = PlayerPrefs.GetInt("HighScore", 0);
         
-        // --- NUOVO: CONTROLLO IMPOSTAZIONI ---
         
-        // 1. Controlla se mostrare il Best Score in gioco
+        
+       
         bool showBest = PlayerPrefs.GetInt("ShowBestScore", 1) == 1;
         if (highScoreText != null)
             highScoreText.gameObject.SetActive(showBest);
 
-        // 2. Controlla se mostrare la Griglia
+       
         bool showGrid = PlayerPrefs.GetInt("ShowGrid", 1) == 1;
         if (gridContainer != null)
             gridContainer.SetActive(showGrid);
             
-        // -------------------------------------
+        
 
         UpdateHighScoreUI();
 
@@ -49,7 +49,7 @@ public class GameController : MonoBehaviour
             gameOverPanel.SetActive(false);
     }
 
-    // ... (TUTTO IL RESTO DELLO SCRIPT RIMANE UGUALE: Update, GameOver, RestartGame) ...
+    
     
     void Update()
     {
@@ -76,7 +76,7 @@ public class GameController : MonoBehaviour
             PlayerPrefs.SetInt("HighScore", highScore);
             PlayerPrefs.Save();
             
-            // --- NUOVA RIGA: SALVA IL RECORD SUL CLOUD! ---
+           
             PlayFabAuth.SaveBestScoreToCloud(highScore);
         }
 
@@ -106,27 +106,27 @@ public class GameController : MonoBehaviour
 
     public void TogglePause()
     {
-        // Se siamo in Game Over, non possiamo mettere in pausa
+        
         if (isGameOver) return; 
 
-        isPaused = !isPaused; // Inverte lo stato
+        isPaused = !isPaused; 
         
         if (pausePanel != null)
             pausePanel.SetActive(isPaused);
 
-        // Se è in pausa ferma il tempo, altrimenti lo fa scorrere normale
+        
         Time.timeScale = isPaused ? 0f : 1f; 
     }
 
     public void ResumeGame()
     {
-        // Chiama semplicemente il Toggle per togliere la pausa
+        
         TogglePause();
     }
 
     public void GoToMainMenu()
     {
-        Time.timeScale = 1f; // Fai ripartire il tempo!
+        Time.timeScale = 1f; 
         SceneManager.LoadScene("MainMenu");
     }
 }

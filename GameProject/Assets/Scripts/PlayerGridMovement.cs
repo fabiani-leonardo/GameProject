@@ -13,16 +13,14 @@ public class PlayerGridMovement : MonoBehaviour
     public float swipeThreshold = 50f;
 
     [Header("Effetti & Audio")]
-    public GameObject explosionPrefab; // Trascina qui il prefab dell'esplosione
-    public AudioClip explosionSound;   // Trascina qui il file audio
+    public GameObject explosionPrefab; 
+    public AudioClip explosionSound;  
     [Range(0f, 1f)] public float soundVolume = 0.8f;
 
     [Header("Anti-Camping")]
-    public GameObject bombPrefab; // Trascina qui il prefab GridBomb
-    public float maxIdleTime = 2.5f; // Tempo limite fermo
+    public GameObject bombPrefab; 
+    public float maxIdleTime = 2.5f; 
 
-    //[Header("Effetti")]
-    //public ParticleSystem moveParticlesPrefab; // Trascina qui il prefab del sistema di particelle per il movimento
     
     private float idleTimer = 0f;
     private Vector2 lastRecordedPos;
@@ -41,7 +39,7 @@ public class PlayerGridMovement : MonoBehaviour
 
     void ApplySelectedSkin()
     {
-        // Leggi quale skin ha scelto il giocatore (Default 0 = Bianco)
+        
         int selectedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
         
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
@@ -49,7 +47,7 @@ public class PlayerGridMovement : MonoBehaviour
 
         switch (selectedSkin)
         {
-            case 0: // Bianco
+            case 0: 
                 sr.color = Color.white;
                 break;
             case 1:
@@ -72,16 +70,18 @@ public class PlayerGridMovement : MonoBehaviour
 
     void Update()
     {
+        
+        if (Time.timeScale == 0f) return;
+
         HandleInput();
-        CheckCamping(); // Nuova funzione
+        CheckCamping(); 
     }
 
-    // ... (Tutta la parte HandleInput, DetectSwipe, Move, UpdateRealPosition resta uguale) ...
-    // ... Copia pure quella parte dallo script precedente se non l'hai cambiata ...
+
 
     void HandleInput()
     {
-        // 1. PRIORITÀ AL TOUCH (Mobile)
+        
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -96,12 +96,9 @@ public class PlayerGridMovement : MonoBehaviour
                 DetectSwipe(); 
             }
             
-            // IMPORTANTE: Se abbiamo rilevato un tocco, usciamo dalla funzione.
-            // In questo modo il codice sotto (Mouse) non viene eseguito.
             return; 
         }
 
-        // 2. FALLBACK MOUSE (Solo per test su PC / Editor)
         if (Input.GetMouseButtonDown(0)) 
         {
             startTouchPos = Input.mousePosition;
@@ -135,17 +132,6 @@ public class PlayerGridMovement : MonoBehaviour
 
         if (newX > maxRight || newX < maxLeft || newY > maxUp || newY < maxDown) return;
 
-        /*// 1. Istanzia le particelle nella vecchia posizione (dove eravamo prima di muoverci)
-        if (moveParticlesPrefab != null)
-        {
-            // Creiamo l'effetto
-            ParticleSystem p = Instantiate(moveParticlesPrefab, transform.position, Quaternion.identity);
-            
-            // Distruggiamo l'oggetto particellare dopo 1 secondo per non intasare la memoria
-            Destroy(p.gameObject, 1f); 
-        }*/
-
-        // 2. Aggiorna la posizione (come prima)
         currentGridPos.x = newX;
         currentGridPos.y = newY;
         UpdateRealPosition();
@@ -156,7 +142,6 @@ public class PlayerGridMovement : MonoBehaviour
         transform.position = new Vector3(currentGridPos.x * cellSize, currentGridPos.y * cellSize, transform.position.z);
     }
 
-    // --- GESTIONE COLLISIONE E MORTE ---
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Laser"))
@@ -167,46 +152,45 @@ public class PlayerGridMovement : MonoBehaviour
 
     void Die()
     {
-        // 1. Crea l'effetto visivo (Esplosione)
         if (explosionPrefab != null)
         {
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         }
 
-        // 2. Riproduci il suono (CON CONTROLLO VOLUME)
+
         if (explosionSound != null)
         {
-            // --- FIX: Leggiamo il volume globale degli SFX ---
+          
             float sfxVol = PlayerPrefs.GetFloat("SFXVolume", 1f);
             
-            // Moltiplichiamo il volume base per quello dello slider
+           
             AudioSource.PlayClipAtPoint(explosionSound, Camera.main.transform.position, soundVolume * sfxVol);
         }
 
-        // 3. Chiama il Game Over
+     
         FindAnyObjectByType<GameController>().GameOver();
 
-        // 4. Distruggi il Player
+       
         Destroy(gameObject);
     }
 
     void CheckCamping()
     {
-        // Se la posizione attuale è uguale all'ultima registrata
+       
         if ((Vector2)transform.position == lastRecordedPos)
         {
             idleTimer += Time.deltaTime;
 
-            // Se supera il tempo limite...
+          
             if (idleTimer >= maxIdleTime)
             {
                 SpawnBombOnMe();
-                idleTimer = 0f; // Resetta per non spawnarne 100 insieme
+                idleTimer = 0f; 
             }
         }
         else
         {
-            // Se ci siamo mossi, resetta il timer e aggiorna la posizione
+           
             idleTimer = 0f;
             lastRecordedPos = transform.position;
         }
@@ -216,7 +200,7 @@ public class PlayerGridMovement : MonoBehaviour
     {
         if (bombPrefab != null)
         {
-            // Spawna la bomba esattamente dove si trova il player
+          
             Instantiate(bombPrefab, transform.position, Quaternion.identity);
         }
     }
