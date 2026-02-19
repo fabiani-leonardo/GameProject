@@ -12,10 +12,6 @@ Sound Effects:	opengameart.org
 Beta Testers:	   Marco Marani
 			          Fulvio Fabiani
 			          Andrea Brancaleoni
-Special Thanks:	Google CEO-Sundar Pichai
-			and Google DeepMind CEO Demis Hassabis
-			"thanks for making Gemini Pro, without you
-			all of this would have been much harder"
-
+Auth Service:		Microsoft PlayFab
 			
 	
