@@ -43,9 +43,13 @@ public class MainMenuManager : MonoBehaviour
         highScoreText.text = "Best: " + best;
 
         gridToggle.isOn = PlayerPrefs.GetInt("ShowGrid", 1) == 1;
-        // ... (tutto il resto del tuo codice rimane identico)
 
-        // --- NUOVO: IMPOSTAZIONI AUDIO ---
+        // --- NUOVO: CARICA LA SKIN SULLO SFONDO ALL'AVVIO ---
+        int savedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
+        UpdateBackgroundColor(savedSkin);
+        // ---------------------------------------------------
+
+        // --- IMPOSTAZIONI AUDIO ---
         if (musicSlider != null) 
             musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 1f);
         if (sfxSlider != null) 

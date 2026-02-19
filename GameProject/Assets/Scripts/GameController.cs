@@ -75,6 +75,9 @@ public class GameController : MonoBehaviour
             highScore = finalScore;
             PlayerPrefs.SetInt("HighScore", highScore);
             PlayerPrefs.Save();
+            
+            // --- NUOVA RIGA: SALVA IL RECORD SUL CLOUD! ---
+            PlayFabAuth.SaveBestScoreToCloud(highScore);
         }
 
         if(gameOverPanel != null)
