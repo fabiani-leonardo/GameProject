@@ -14,4 +14,4 @@ Beta Testers:	   Marco Marani
 			          Andrea Brancaleoni
 Auth Service:		Microsoft PlayFab
 			
-	
+Professor:			Franco Milicchio	
