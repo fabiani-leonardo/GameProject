@@ -6,37 +6,37 @@ using System.Collections.Generic;
 
 public class PlayFabAuth : MonoBehaviour
 {
-    [Header("Pannelli UI")]
+    [Header("UI Panels")]
     public GameObject authPanel;     
     public GameObject loginPanel;    
     public GameObject registerPanel; 
     public GameObject profilePanel;
 
-    [Header("Input Field Login & Register")]
+    [Header("Login & Register Input Fields")]
     public TMP_InputField loginEmail;
     public TMP_InputField loginPassword;
     public TMP_InputField registerEmail;
     public TMP_InputField registerPassword;
     public TMP_InputField registerConfirmPassword;
 
-    [Header("UI Profilo Loggato")] 
+    [Header("Logged Profile UI")] 
     public TextMeshProUGUI profileEmailText;
     public TextMeshProUGUI profileScoreText;
 
-    [Header("Feedback Visivo")]
+    [Header("Visual Feedback")]
     public TextMeshProUGUI messageText; 
 
-    [Header("--- CLASSIFICA E NICKNAME ---")]
+    [Header("--- LEADERBOARD & NICKNAME ---")]
     public GameObject leaderboardPanel;
     public GameObject nicknamePanel;
     public TMP_InputField nicknameInput;
     public TextMeshProUGUI leaderboardText;
-    public TextMeshProUGUI currentPlayerNameText; // <-- NUOVO: Il testo in alto a destra
+    public TextMeshProUGUI currentPlayerNameText; 
 
     private string currentEmail = ""; 
     private string tempPassword = ""; 
     private bool hasDisplayName = false; 
-    private string currentDisplayName = ""; // <-- NUOVO: Salva il nome in memoria
+    private string currentDisplayName = ""; 
 
     void Start()
     {
@@ -50,6 +50,10 @@ public class PlayFabAuth : MonoBehaviour
         else if (PlayFabClientAPI.IsClientLoggedIn())
         {
             currentEmail = PlayerPrefs.GetString("AuthEmail", "");
+            
+            // --- FIX: Reload Nickname from memory when changing scenes! ---
+            currentDisplayName = PlayerPrefs.GetString("DisplayName", "");
+            hasDisplayName = !string.IsNullOrEmpty(currentDisplayName);
         }
     }
 
@@ -66,7 +70,7 @@ public class PlayFabAuth : MonoBehaviour
         });
     }
 
-    // --- GESTIONE INTERFACCIA ---
+    // --- UI MANAGEMENT ---
     public void OpenAuthPanel() 
     { 
         authPanel.SetActive(true); 
@@ -86,20 +90,20 @@ public class PlayFabAuth : MonoBehaviour
         profileScoreText.text = "Best: " + PlayerPrefs.GetInt("HighScore", 0);
     }
 
-    // --- LOGICA PLAYFAB ---
+    // --- PLAYFAB LOGIC ---
     public void RegisterButton()
     {
-        if (registerPassword.text != registerConfirmPassword.text) { messageText.text = "Errore: Le password non coincidono!"; return; }
-        if (registerPassword.text.Length < 6) { messageText.text = "Errore: La password deve avere almeno 6 caratteri!"; return; }
+        if (registerPassword.text != registerConfirmPassword.text) { messageText.text = "Error: Passwords do not match!"; return; }
+        if (registerPassword.text.Length < 6) { messageText.text = "Error: Password must be at least 6 characters long!"; return; }
 
-        messageText.text = "Registrazione in corso...";
+        messageText.text = "Registering...";
         var request = new RegisterPlayFabUserRequest { Email = registerEmail.text, Password = registerPassword.text, RequireBothUsernameAndEmail = false };
         PlayFabClientAPI.RegisterPlayFabUser(request, OnRegisterSuccess, OnError);
     }
 
     public void LoginButton()
     {
-        messageText.text = "Accesso in corso...";
+        messageText.text = "Logging in...";
         tempPassword = loginPassword.text; 
         var request = new LoginWithEmailAddressRequest { Email = loginEmail.text, Password = tempPassword };
         PlayFabClientAPI.LoginWithEmailAddress(request, OnLoginSuccess, OnError);
@@ -112,14 +116,17 @@ public class PlayFabAuth : MonoBehaviour
         hasDisplayName = false;
         currentDisplayName = "";
         
-        PlayerPrefs.DeleteKey("HighScore"); PlayerPrefs.DeleteKey("AuthEmail"); PlayerPrefs.DeleteKey("AuthPass");
+        PlayerPrefs.DeleteKey("HighScore"); 
+        PlayerPrefs.DeleteKey("AuthEmail"); 
+        PlayerPrefs.DeleteKey("AuthPass");
+        PlayerPrefs.DeleteKey("DisplayName"); // Clear the name on logout!
         PlayerPrefs.SetInt("SelectedSkin", 0);
         
         var menu = FindAnyObjectByType<MainMenuManager>();
         if (menu != null) { menu.highScoreText.text = "Best: 0"; menu.SelectSkin(0); }
 
         ShowLogin(); 
-        messageText.text = "Disconnesso con successo.";
+        messageText.text = "Logged out successfully.";
     }
 
     void OnRegisterSuccess(RegisterPlayFabUserResult result)
@@ -127,13 +134,13 @@ public class PlayFabAuth : MonoBehaviour
         var emailReq = new AddOrUpdateContactEmailRequest { EmailAddress = registerEmail.text };
         PlayFabClientAPI.AddOrUpdateContactEmail(emailReq, res => {}, err => {});
         ShowLogin(); 
-        messageText.text = "Registrato! Controlla la mail per confermare.";
+        messageText.text = "Registered! Check your email to confirm.";
     }
 
     void OnLoginSuccess(LoginResult result)
     {
         currentEmail = loginEmail.text;
-        messageText.text = "Controllo verifica email...";
+        messageText.text = "Checking email verification...";
         CheckEmailVerification();
     }
 
@@ -147,9 +154,10 @@ public class PlayFabAuth : MonoBehaviour
             bool isVerified = false;
             if (result.PlayerProfile != null)
             {
-                // Salviamo il nickname se esiste già
-                currentDisplayName = result.PlayerProfile.DisplayName;
+                // Save the nickname in memory if it already exists on the servers
+                currentDisplayName = result.PlayerProfile.DisplayName != null ? result.PlayerProfile.DisplayName : "";
                 hasDisplayName = !string.IsNullOrEmpty(currentDisplayName);
+                PlayerPrefs.SetString("DisplayName", currentDisplayName);
 
                 if (result.PlayerProfile.ContactEmailAddresses != null)
                 {
@@ -165,21 +173,27 @@ public class PlayFabAuth : MonoBehaviour
                 PlayerPrefs.SetString("AuthEmail", currentEmail);
                 PlayerPrefs.SetString("AuthPass", tempPassword);
                 PlayerPrefs.Save();
-                messageText.text = "Caricamento Best Score...";
+                messageText.text = "Loading Best Score...";
                 LoadBestScoreFromCloud();
             }
             else
             {
+                // Automatic email resend if not verified
+                var emailReq = new AddOrUpdateContactEmailRequest { EmailAddress = currentEmail };
+                PlayFabClientAPI.AddOrUpdateContactEmail(emailReq, 
+                    res => Debug.Log("SUCCESS: New email sent!"), 
+                    err => Debug.LogError("EMAIL SEND ERROR: " + err.GenerateErrorReport()));
+
                 PlayFabClientAPI.ForgetAllCredentials();
                 currentEmail = "";
                 ShowLogin(); 
-                messageText.text = "ERRORE: Devi confermare l'email dal link ricevuto!"; 
+                messageText.text = "Email not confirmed!\nWe just sent you a NEW link. Check your Spam folder too!"; 
             }
         }, 
-        error => { ShowLogin(); messageText.text = "Errore durante il controllo del profilo."; });
+        error => { ShowLogin(); messageText.text = "Error checking profile."; });
     }
 
-    void OnError(PlayFabError error) { messageText.text = "Errore: " + error.ErrorMessage; }
+    void OnError(PlayFabError error) { messageText.text = "Error: " + error.ErrorMessage; }
 
     // --- CLOUD SAVE ---
     public void LoadBestScoreFromCloud()
@@ -208,17 +222,17 @@ public class PlayFabAuth : MonoBehaviour
     {
         if (!PlayFabClientAPI.IsClientLoggedIn()) return; 
         var request = new UpdatePlayerStatisticsRequest { Statistics = new List<StatisticUpdate> { new StatisticUpdate { StatisticName = "HighScore", Value = newScore } } };
-        PlayFabClientAPI.UpdatePlayerStatistics(request, res => Debug.Log("Best Score Cloud OK"), err => Debug.Log("Errore Cloud"));
+        PlayFabClientAPI.UpdatePlayerStatistics(request, res => Debug.Log("Cloud Best Score OK"), err => Debug.Log("Cloud Error"));
     }
 
-    // --- SISTEMA LEADERBOARD E NICKNAME ---
+    // --- LEADERBOARD AND NICKNAME SYSTEM ---
 
     public void OpenLeaderboard()
     {
         if (!PlayFabClientAPI.IsClientLoggedIn())
         {
             OpenAuthPanel();
-            messageText.text = "Devi prima accedere per vedere la Classifica Globale!";
+            messageText.text = "You must log in first to see the Global Leaderboard!";
             return;
         }
 
@@ -227,14 +241,14 @@ public class PlayFabAuth : MonoBehaviour
         if (!hasDisplayName)
         {
             nicknamePanel.SetActive(true);
-            leaderboardText.text = "Scegli un Nickname per partecipare alla classifica!";
-            if (currentPlayerNameText != null) currentPlayerNameText.text = ""; // Nasconde il testo
+            leaderboardText.text = "Choose a Nickname to join the leaderboard!";
+            if (currentPlayerNameText != null) currentPlayerNameText.text = ""; 
         }
         else
         {
             nicknamePanel.SetActive(false);
-            leaderboardText.text = "Caricamento classifica in corso...";
-            if (currentPlayerNameText != null) currentPlayerNameText.text = "Nickname:\n" + currentDisplayName; // Mostra il testo
+            leaderboardText.text = "Loading leaderboard...";
+            if (currentPlayerNameText != null) currentPlayerNameText.text = "Nickname:\n" + currentDisplayName; 
             FetchLeaderboardData();
         }
     }
@@ -248,28 +262,31 @@ public class PlayFabAuth : MonoBehaviour
     {
         if (nicknameInput.text.Length < 3) 
         {
-            leaderboardText.text = "Il Nickname deve avere almeno 3 caratteri!";
+            leaderboardText.text = "Nickname must be at least 3 characters long!";
             return;
         }
 
-        leaderboardText.text = "Salvataggio Nickname...";
+        leaderboardText.text = "Saving Nickname...";
 
         var request = new UpdateUserTitleDisplayNameRequest { DisplayName = nicknameInput.text };
         PlayFabClientAPI.UpdateUserTitleDisplayName(request, 
         result => 
         {
-            currentDisplayName = nicknameInput.text; // Salviamo il nuovo nome in memoria
+            currentDisplayName = nicknameInput.text; 
             hasDisplayName = true;
-            nicknamePanel.SetActive(false);
             
-            // Aggiorniamo il testo in alto a destra
+            // --- FIX: Save the name locally as soon as you create it! ---
+            PlayerPrefs.SetString("DisplayName", currentDisplayName);
+            PlayerPrefs.Save();
+            
+            nicknamePanel.SetActive(false);
             if (currentPlayerNameText != null) currentPlayerNameText.text = "Nickname:\n" + currentDisplayName;
 
             FetchLeaderboardData();
         }, 
         error => 
         {
-            leaderboardText.text = "Errore: Nickname non valido o già in uso.";
+            leaderboardText.text = "Error: Nickname invalid or already in use.";
         });
     }
 
@@ -285,10 +302,10 @@ public class PlayFabAuth : MonoBehaviour
         PlayFabClientAPI.GetLeaderboard(request, 
         result => 
         {
-            string classifica = "--- TOP 10 GLOBALE ---\n\n";
+            string classifica = "--- GLOBAL TOP 10 ---\n\n";
             foreach (var player in result.Leaderboard)
             {
-                string nome = string.IsNullOrEmpty(player.DisplayName) ? "Anonimo" : player.DisplayName;
+                string nome = string.IsNullOrEmpty(player.DisplayName) ? "Anonymous" : player.DisplayName;
                 classifica += (player.Position + 1) + ". " + nome + " - " + player.StatValue + "\n";
             }
             
@@ -296,7 +313,7 @@ public class PlayFabAuth : MonoBehaviour
         }, 
         error => 
         {
-            leaderboardText.text = "Errore di connessione alla classifica.";
+            leaderboardText.text = "Error connecting to leaderboard.";
         });
     }
 }
